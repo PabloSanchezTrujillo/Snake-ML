@@ -69,6 +69,15 @@ class Main:
             if block == self.snakeAI.body[0]:
                 self.gameOver()
 
+        # Check if the snake hits the other snake
+        for block in self.snakeAI.body[0:]:
+            if self.snake.body[0] == block:
+                self.gameOver()
+
+        for block in self.snake.body[0:]:
+            if self.snakeAI.body[0] == block:
+                self.gameOver()
+
     def gameOver(self):
         self.snake.reset()
         self.snakeAI.reset()
