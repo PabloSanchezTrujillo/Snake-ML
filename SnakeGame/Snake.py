@@ -6,10 +6,11 @@ class Snake:
     def __init__(self, enemy):        
         self.newBlock = False
         self.enemy = enemy
+        self.score = 0
 
         if not self.enemy:
-            self.body = [Vector2(5,10), Vector2(4,10), Vector2(3,10)]
-            self.direction = Vector2(0,0)
+            self.body = [Vector2(4,9), Vector2(3,9), Vector2(2,9)]
+            self.direction = Vector2(1,0)
 
             self.headUp = pygame.image.load('Graphics/head_up.png').convert_alpha()
             self.headDown = pygame.image.load('Graphics/head_down.png').convert_alpha()
@@ -26,7 +27,7 @@ class Snake:
             self.bodyBR = pygame.image.load('Graphics/body_br.png').convert_alpha()
             self.bodyBL = pygame.image.load('Graphics/body_bl.png').convert_alpha()
         else:
-            self.body = [Vector2(15,10), Vector2(16,10), Vector2(17,10)]
+            self.body = [Vector2(15,11), Vector2(16,11), Vector2(17,11)]
             self.direction = Vector2(-1,0)
 
             self.headUp = pygame.image.load('Graphics/head_up-AI.png').convert_alpha()
@@ -121,8 +122,10 @@ class Snake:
 
     def reset(self):
         if not self.enemy:
-            self.body = [Vector2(5,10), Vector2(4,10), Vector2(3,10)]
-            self.direction = Vector2(0,0)
+            self.body = [Vector2(5,9), Vector2(4,9), Vector2(3,9)]
+            self.direction = Vector2(1,0)
+            self.score = 0
         else:
-            self.body = [Vector2(15,10), Vector2(16,10), Vector2(17,10)]
+            self.body = [Vector2(15,11), Vector2(16,11), Vector2(17,11)]
             self.direction = Vector2(-1,0)
+            self.score = 0

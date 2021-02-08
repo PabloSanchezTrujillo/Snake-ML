@@ -6,17 +6,21 @@ class Main:
 
     def __init__(self, cellNumber):
         self.gameFont = pygame.font.Font('Font/PoetsenOne-Regular.ttf', 25)
+        self.gameFontLarge = pygame.font.Font('Font/PoetsenOne-Regular.ttf', 120)
+        self.gameFontMedium = pygame.font.Font('Font/PoetsenOne-Regular.ttf', 60)
         self.apple = pygame.image.load('Graphics/apple.png').convert_alpha()
         self.cellNumber = cellNumber
         self.snake = Snake(False)
         self.snakeAI = Snake(True)
         self.fruit = Fruit(cellNumber)
+        self.isGameOver = False
 
     def update(self):
-        self.snake.moveSnake()
-        self.snakeAI.moveSnake()
-        self.checkCollision()
-        self.checkFail()
+        if not self.isGameOver:
+            self.snake.moveSnake()
+            self.snakeAI.moveSnake()
+            self.checkCollision()
+            self.checkFail()
 
     def drawElements(self, cellSize, screen):
         self.drawGrass(cellSize, screen)
@@ -24,16 +28,20 @@ class Main:
         self.snakeAI.drawSnake(cellSize, screen)
         self.fruit.drawFruit(cellSize, screen)
         self.drawScore(screen, cellSize)
+        if self.isGameOver:
+            self.drawGameOverText(screen, cellSize)
 
     def checkCollision(self):
         if self.fruit.pos == self.snake.body[0]:
             self.fruit.randomFruit()
             self.snake.addBlock()
+            self.snake.score += 1
             self.snake.playCrunchSound()
 
         if self.fruit.pos == self.snakeAI.body[0]:
             self.fruit.randomFruit()
             self.snakeAI.addBlock()
+            self.snakeAI.score += 1
             self.snakeAI.playCrunchSound()
         
         for block in self.snake.body[1:]:
@@ -79,8 +87,23 @@ class Main:
                 self.gameOver()
 
     def gameOver(self):
-        self.snake.reset()
-        self.snakeAI.reset()
+        self.isGameOver = True        
+        #self.snake.reset()
+        #self.snakeAI.reset()
+
+    def drawGameOverText(self, screen, cellSize):
+        gameOverText = self.gameFontLarge.render("Game Over", True, (56,74,12))
+        gameOverRect = gameOverText.get_rect(center = (self.cellNumber*cellSize / 2, self.cellNumber*cellSize / 2))
+        if self.snake.score > self.snakeAI.score:
+            winnerText = self.gameFontMedium.render("Player wins!", True, (56,74,12))
+        elif self.snakeAI.score > self.snake.score:
+            winnerText = self.gameFontMedium.render("AI wins!", True, (56,74,12))
+        else:
+            winnerText = self.gameFontMedium.render("Draw", True, (56,74,12))
+        winnerRect = winnerText.get_rect(center = (self.cellNumber*cellSize / 2, (self.cellNumber*cellSize / 2) + 100))
+
+        screen.blit(gameOverText, gameOverRect)
+        screen.blit(winnerText, winnerRect)
 
     def drawGrass(self, cellSize, screen):
         grassColor = (167,209,61)
@@ -99,7 +122,7 @@ class Main:
 
     def drawScore(self, screen, cellSize):
         # RED score
-        scoreText = str(len(self.snakeAI.body) - 3)
+        scoreText = str(self.snakeAI.score)
         scoreSurface = self.gameFont.render(scoreText, True, (56,74,12))
         scorePosition = Vector2(int(cellSize * self.cellNumber - 60), int(cellSize * self.cellNumber - 40))
         scoreRect = scoreSurface.get_rect(center = (scorePosition.x, scorePosition.y))
@@ -112,7 +135,7 @@ class Main:
         screen.blit(self.apple, appleRect)
 
         # BLUE score
-        scoreText = str(len(self.snake.body) - 3)
+        scoreText = str(self.snake.score)
         scoreSurface = self.gameFont.render(scoreText, True, (56,74,12))
         scorePosition = Vector2(94, int(cellSize * self.cellNumber - 40))
         scoreRect = scoreSurface.get_rect(center = (scorePosition.x, scorePosition.y))
