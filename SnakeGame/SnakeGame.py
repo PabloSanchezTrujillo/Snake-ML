@@ -55,7 +55,6 @@ while True:
         elif move == "right":
             if mainGame.snakeAI.direction.x != -1:
                 mainGame.snakeAI.direction = Vector2(1,0)
-        print("Snake move:", move)
 
         if event.type == pygame.QUIT:
             pygame.quit()

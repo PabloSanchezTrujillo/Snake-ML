@@ -28,6 +28,7 @@ class Main:
         self.snakeAI.drawSnake(cellSize, screen)
         self.fruit.drawFruit(cellSize, screen)
         self.drawScore(screen, cellSize)
+
         if self.isGameOver:
             self.drawGameOverText(screen, cellSize)
 
@@ -71,22 +72,35 @@ class Main:
         # Check if the snake hits itself
         for block in self.snake.body[1:]:
             if block == self.snake.body[0]:
-                self.gameOver()
+                self.gameOver(1)
 
         for block in self.snakeAI.body[1:]:
             if block == self.snakeAI.body[0]:
-                self.gameOver()
+                self.gameOver(2)
 
         # Check if the snake hits the other snake
         for block in self.snakeAI.body[0:]:
             if self.snake.body[0] == block:
-                self.gameOver()
+                self.gameOver(3)
 
         for block in self.snake.body[0:]:
             if self.snakeAI.body[0] == block:
-                self.gameOver()
+                self.gameOver(4)
 
-    def gameOver(self):
+    def gameOver(self, case):
+        if(case == 1):
+            # Player hits itself
+            self.snake.score /= 2
+        elif(case == 2):
+            # AI snake hits itself
+            self.snakeAI.score /= 2
+        elif(case == 3):
+            # Player hits AI snake
+            self.snakeAI.score += 5
+        elif(case == 4):
+            # AI snake hits player
+            self.snake.score += 5
+
         self.isGameOver = True        
         #self.snake.reset()
         #self.snakeAI.reset()
