@@ -1,5 +1,6 @@
 from Snake import *
 from Fruit import *
+from SnakeAI import State
 from pygame.math import Vector2
 
 class Main:
@@ -8,12 +9,17 @@ class Main:
         self.gameFont = pygame.font.Font('Font/PoetsenOne-Regular.ttf', 25)
         self.gameFontLarge = pygame.font.Font('Font/PoetsenOne-Regular.ttf', 120)
         self.gameFontMedium = pygame.font.Font('Font/PoetsenOne-Regular.ttf', 60)
+        self.gameFontSmall = pygame.font.Font('Font/PoetsenOne-Regular.ttf', 25)
         self.apple = pygame.image.load('Graphics/apple.png').convert_alpha()
         self.cellNumber = cellNumber
         self.snake = Snake(False)
         self.snakeAI = Snake(True)
         self.fruit = Fruit(cellNumber)
         self.isGameOver = False
+
+    def currentState(self):
+        return State(self.fruit.pos, self.snake.body, self.snake.score, self.snake.direction,
+                        self.snakeAI.body, self.snakeAI.score, self.snakeAI.direction)
 
     def update(self):
         if not self.isGameOver:
@@ -108,6 +114,7 @@ class Main:
     def drawGameOverText(self, screen, cellSize):
         gameOverText = self.gameFontLarge.render("Game Over", True, (56,74,12))
         gameOverRect = gameOverText.get_rect(center = (self.cellNumber*cellSize / 2, self.cellNumber*cellSize / 2))
+        
         if self.snake.score > self.snakeAI.score:
             winnerText = self.gameFontMedium.render("Player wins!", True, (56,74,12))
         elif self.snakeAI.score > self.snake.score:
@@ -116,8 +123,12 @@ class Main:
             winnerText = self.gameFontMedium.render("Draw", True, (56,74,12))
         winnerRect = winnerText.get_rect(center = (self.cellNumber*cellSize / 2, (self.cellNumber*cellSize / 2) + 100))
 
+        resetText = self.gameFontSmall.render("Press 'R' to start a new game", True, (56,74,12))
+        resetRect = gameOverText.get_rect(center = ((self.cellNumber*cellSize / 2) + 150, (self.cellNumber*cellSize / 2) + 400))
+
         screen.blit(gameOverText, gameOverRect)
         screen.blit(winnerText, winnerRect)
+        screen.blit(resetText, resetRect)
 
     def drawGrass(self, cellSize, screen):
         grassColor = (167,209,61)
