@@ -15,7 +15,7 @@ class State():
         self.player_score = player_score
         self.player_dir = player_dir
         self.AI_body = AI_body
-        self.AI_score = AI_score
+        self.AI_score = AI_score # Reward
         self.AI_dir = AI_dir
 
 class Controller(object):
@@ -94,6 +94,7 @@ class GreedyController(Controller):
             elif(state.AI_dir == Vector2(1, 0)): # RIGHT direction
                 return random.choice(["up", "down", "right"])
         else:
+            print(len(self.policy))
             return self.exploit(state)
 
     # Selects the best action regarding the action score
