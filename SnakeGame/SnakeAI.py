@@ -26,64 +26,133 @@ class Controller(object):
     def get_move(self, *args, **kwargs):
         raise RuntimeError("You didn't override getmove!")
 
-class GreedyController(Controller):
+class ApproxController(Controller):
 
-    # Initialise the new policy
-    def __init__(self, policy = None):
-        if not policy:
-            policy = defaultdict( lambda: defaultdict( int ) )
-        self.policy = policy
+    def __init__(self, weights):
+        self.weights = weights
         self.history = []
 
-    # Return the values of each state
-    def state_value(self, state, fn = max):
-        if not self.policy[state]:
-            return 0
-        return fn( self.policy[state].values() )
-
-    # Return the best value for each state
-    def state_value_agg(self, fn = max):
-        best = None
-        for state in self.policy:
-            value = self.state_value(state, fn)
-            if best == None or value > best:
-                best = value
-        return best
-
-    # Returns the state-action policy in the Q-table
     def Q(self, state, action):
-        return self.policy[state][action]
+        features = self.getFeatures(state, action)
 
-    # Returns the minimum value of the sate
-    def min_state_value(self):
-        value = 0
-        for state in self.policy:
-            value = min( value, self.state_value(state, min) )
-        return value
+        if self.weights == None:
+            self.weights = [ 0 ] * len(features)
 
-    # Q-learning for every movement
+        #print("Weights: ", self.weights)
+
+        total = 0
+        for j in range(0, len(features)):
+            total += self.weights[j] * features[j]
+        return total
+
+    def QPrime(self, new_state):
+        """Get best reward from a successor state"""
+        bestValue = None
+        for action in LEGAL_ACTS: # TODO: Todos los Legal Acts?
+            value = self.Q(new_state, action)
+            if bestValue == None or bestValue < value:
+                bestValue = value
+        return bestValue
+
+    #def state_value(self, state, fn = max):
+     #   """Only used for visualisation"""
+     #   best = None
+     #   for action in main.LEGAL_ACTS:
+      #      value = self.Q(state, action)
+      #      if best == None:
+       #         best = value
+      #      else:
+       #         best = fn( value, best )
+      #  return best
+
+    #def state_value_agg(self, fn = max):
+     #   """Only used for visualisation"""
+     #   all_states = self.enumerateStates()
+     #   best_value = None
+     #   for state in all_states:
+      #      state_value = self.state_value( state, fn )
+      #      if best_value == None:
+       #         best_value = state_value
+      #      else:
+       #         best_value = fn(best_value, state_value )
+      #  return best_value
+
+    #def enumerateStates(self):
+     #   """Only used for visualisation"""
+      #  states = []
+      #  for x in range(0, main.GRID_WIDTH):
+       #     for y in range(0, main.GRID_HEIGHT):
+        #        states.append( [x, y] )
+       # return states
+
+    #def max_state_value(self):
+     #   """Only used for visualisation"""
+      #  return self.all_state_values(max)
+
+    #def min_state_value(self):
+     #   """Only used for visualisation"""
+      #  return self.all_state_values(min)
+
+    def getFeatures(self, state, action):
+        """Convert a state-action pair into features"""
+        if action == "up":
+            next_x = state.AI_body[0].x + 0
+            next_y = state.AI_body[0].y - 1
+        elif action == "down":
+            next_x = state.AI_body[0].x + 0
+            next_y = state.AI_body[0].y + 1
+        elif action == "left":
+            next_x = state.AI_body[0].x - 1
+            next_y = state.AI_body[1].y + 0
+        elif action == "right":
+            next_x = state.AI_body[0].x + 1
+            next_y = state.AI_body[0].y + 0
+
+        features = []
+
+        # Manhattan distance between the next space and some waypoints (current apple position, current player's head)
+        waypoints = [state.apple_pos] #[ state.apple_pos, state.player_body[0] ]
+        for (x,y) in waypoints:        
+            dist_x = abs(next_x - x)
+            dist_y = abs(next_y - y)
+            features += [ dist_x, dist_y ]
+
+        #print(features)
+
+        return features
+
     def on_move(self, state, action, new_state, reward):
-        """When we move, update the Q-Learning table"""
-        # update table
-        Q = self.policy
+        """When we move, store the value in the history"""
 
-        # Keep track of the history (for offline learning)
-        # calculate features:
-        # s_features = self.state_to_features(state)
-        # sprime_features = self.state_to_features( new_state )
-        # self.history.append( s_features + [action, reward] + sprime_features  )
+        # update the weights
+        self.update( state, action, reward, new_state )
 
-        # find what the best predicted 'next reward' would have been
-        max_succ = 0
-        if Q[new_state]:
-            max_succ = max( Q[new_state].values() )
-
-        # update the table according to the Q-Learning equation
-        Q[state][action] = Q[state][action] + LEARNING_RATE * ( reward + DISCOUNT_FACTOR * max_succ ) - Q[state][action]
+        # update the current state
         self.state = new_state
 
-    # Selects the best move to do or explores a random move (20% chance)
+
+    def update(self, s, action, reward, s_prime, discountFactor=0.8, learningRate=0.001):
+        """Adjust the weights to adapt to observations"""
+        
+        # 1. get the features for the starting state
+        f = self.getFeatures(s, action)
+
+        # 2. find the best next action from the successor state according to Q:
+        max_successor = self.QPrime(s_prime)
+        target = reward + discountFactor * max_successor
+        error = target - self.Q( s, action ) 
+
+        # 3. calculate the error for each feature
+        errors = []
+        for j in range(0, len(self.weights) ):
+            errors.append( learningRate * f[j] * error )
+
+        # 4. update the weights
+        for i in range( 0, len(self.weights) ):
+            self.weights[i] = self.weights[i] + errors[i]
+
     def get_move(self, state, **kwargs):
+        """Actual policy for making moves"""
         if random.uniform(0, 1) < EXPLORATION_FACTOR:
             if(state.AI_dir == Vector2(0, -1)): # UP direction
                 return random.choice(["up", "left", "right"])
@@ -94,13 +163,11 @@ class GreedyController(Controller):
             elif(state.AI_dir == Vector2(1, 0)): # RIGHT direction
                 return random.choice(["up", "down", "right"])
         else:
-            print(len(self.policy))
-            return self.exploit(state)
+            return self.exploit( state )
 
-    # Selects the best action regarding the action score
     def exploit(self, state):
-        best_choice = None
-        best_score = -10000
+        """Choose best based on Q values"""
+        best = (None, None)
 
         if(state.AI_dir == Vector2(0, -1)): # UP direction
             legal_moves = ["up", "left", "right"]
@@ -112,12 +179,11 @@ class GreedyController(Controller):
             legal_moves = ["up", "down", "right"]
 
         for action in legal_moves:
-            act_score = self.policy[state][action]
-            if act_score > best_score or (act_score == best_score and random.choice( [False, True] ) ):
-                best_choice = action
-                best_score = act_score
+            score = self.Q( state, action )
+            if best[0] is None or score > best[1]:
+                best = ( action, score )
 
-        return best_choice
+        return best[0]
 
     def next_direction(self, move, snake_dir):
         if move == "up":
@@ -136,7 +202,7 @@ class GreedyController(Controller):
         return snake_dir
 
     def calculate_reward(self, snake_body, fruit_pos):
-        if(snake_body[0] == fruit_pos):
-            return 1
+        if(Vector2.distance_to(snake_body[0], fruit_pos) == 0):
+            return 100
         else:
             return 0

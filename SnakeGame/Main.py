@@ -21,6 +21,13 @@ class Main:
         return State(self.fruit.pos, self.snake.body, self.snake.score, self.snake.direction,
                         self.snakeAI.body, self.snakeAI.score, self.snakeAI.direction)
 
+    def newState(self, snakeAI_body, newDirection):
+        newSnakeAI_body = snakeAI_body.copy()
+        newSnakeAI_body[0] = Vector2(snakeAI_body[0].x + newDirection.x, snakeAI_body[0].y + newDirection.y)
+
+        return State(self.fruit.pos, self.snake.body, self.snake.score, self.snake.direction,
+                        newSnakeAI_body, self.snakeAI.score, newDirection)
+
     def update(self):
         if not self.isGameOver:
             self.snake.moveSnake()
