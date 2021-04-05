@@ -30,6 +30,7 @@ class ApproxController(Controller):
 
     def __init__(self, weights):
         self.weights = weights
+        self.legalActs = []
         self.history = []
 
     def Q(self, state, action):
@@ -38,8 +39,6 @@ class ApproxController(Controller):
         if self.weights == None:
             self.weights = [ 0 ] * len(features)
 
-        #print("Weights: ", self.weights)
-
         total = 0
         for j in range(0, len(features)):
             total += self.weights[j] * features[j]
@@ -47,8 +46,9 @@ class ApproxController(Controller):
 
     def QPrime(self, new_state):
         """Get best reward from a successor state"""
+
         bestValue = None
-        for action in LEGAL_ACTS: # TODO: Todos los Legal Acts?
+        for action in self.legalActs:
             value = self.Q(new_state, action)
             if bestValue == None or bestValue < value:
                 bestValue = value
@@ -155,12 +155,16 @@ class ApproxController(Controller):
         """Actual policy for making moves"""
         if random.uniform(0, 1) < EXPLORATION_FACTOR:
             if(state.AI_dir == Vector2(0, -1)): # UP direction
+                self.legalActs = ["up", "left", "right"]
                 return random.choice(["up", "left", "right"])
             elif(state.AI_dir == Vector2(0, 1)): # DOWN direction
+                self.legalActs = ["down", "left", "right"]
                 return random.choice(["down", "left", "right"])
             elif(state.AI_dir == Vector2(-1, 0)): # LEFT direction
+                self.legalActs = ["up", "down", "left"]
                 return random.choice(["up", "down", "left"])
             elif(state.AI_dir == Vector2(1, 0)): # RIGHT direction
+                self.legalActs = ["up", "down", "right"]
                 return random.choice(["up", "down", "right"])
         else:
             return self.exploit( state )
@@ -177,6 +181,8 @@ class ApproxController(Controller):
             legal_moves = ["up", "down", "left"]
         elif(state.AI_dir == Vector2(1, 0)): # RIGHT direction
             legal_moves = ["up", "down", "right"]
+            
+        self.legalActs = legal_moves
 
         for action in legal_moves:
             score = self.Q( state, action )
@@ -205,4 +211,4 @@ class ApproxController(Controller):
         if(Vector2.distance_to(snake_body[0], fruit_pos) == 0):
             return 100
         else:
-            return 0
+            return -10

@@ -65,7 +65,7 @@ while True:
     if iteration == 0:
         weights = None
     snakeQLearn = ApproxController(weights)
-    print("Weights: ", snakeQLearn.weights)
+    #print("Weights: ", snakeQLearn.weights)
 
     # Events loop
     for event in pygame.event.get():
@@ -89,11 +89,12 @@ while True:
 
         # Each X seconds calculate a new movement for the AI
         if time.time_ns() - t0 >= 0.3 * pow(10,9):
-            snakeAI_move()
-            # Update the weights
-            weights = snakeQLearn.weights
+            snakeAI_move()            
             t0 = time.time_ns()
             iteration += 1
+
+            # Update the weights
+            weights = snakeQLearn.weights
 
         # Reset game with 'R'
         if event.type == pygame.KEYDOWN:
