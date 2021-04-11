@@ -53,11 +53,11 @@ def snakeAI_move():
     new_state = mainGame.newState(current_state.AI_body, new_direction)
 
     # Calculate the reward for the selected move
-    reward = snakeQLearn.calculate_reward(new_state.AI_body, new_state.apple_pos)  # TODO: El AI_body se mueve? No habría que hacerlo después del movimiento?
-    #print(reward)
+    reward = snakeQLearn.calculate_reward(new_state.AI_body, new_state.player_body, new_state.apple_pos)  # snakeAI head updated
+    #print(reward)    
 
     # Update the Q-learning for the selected movement
-    snakeQLearn.on_move(current_state, move, new_state, reward)  # TODO: El new_state tiene el AI_body actualizado?
+    snakeQLearn.on_move(current_state, move, new_state, reward)
 
 # Main Loop
 while True:
@@ -88,7 +88,7 @@ while True:
                     mainGame.snake.direction = Vector2(1,0)
 
         # Each X seconds calculate a new movement for the AI
-        if time.time_ns() - t0 >= 0.3 * pow(10,9):
+        if time.time_ns() - t0 >= 0.15 * pow(10,9) and mainGame.isGameOver == False:
             snakeAI_move()            
             t0 = time.time_ns()
             iteration += 1
@@ -112,4 +112,4 @@ while True:
     mainGame.drawElements(cellSize, screen)
 
     pygame.display.update()
-    clock.tick(60)
+    clock.tick(120)

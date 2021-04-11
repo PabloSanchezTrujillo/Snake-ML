@@ -40,8 +40,13 @@ class ApproxController(Controller):
             self.weights = [ 0 ] * len(features)
 
         total = 0
+        iteration = 0
         for j in range(0, len(features)):
-            total += self.weights[j] * features[j]
+            if iteration < 2:
+                total += self.weights[j] * features[j]
+            else:
+                total -= self.weights[j] * features[j]
+            iteration += 1
         return total
 
     def QPrime(self, new_state):
@@ -110,9 +115,9 @@ class ApproxController(Controller):
 
         features = []
 
-        # Manhattan distance between the next space and some waypoints (current apple position, current player's head)
-        waypoints = [state.apple_pos] #[ state.apple_pos, state.player_body[0] ]
-        for (x,y) in waypoints:        
+        # Manhattan distance between the next space and some waypoints (current apple position, current player's head, current player's tail)
+        waypoints = [ state.apple_pos, state.player_body[0]] #, state.player_body[-1]]
+        for (x,y) in waypoints:
             dist_x = abs(next_x - x)
             dist_y = abs(next_y - y)
             features += [ dist_x, dist_y ]
@@ -181,7 +186,7 @@ class ApproxController(Controller):
             legal_moves = ["up", "down", "left"]
         elif(state.AI_dir == Vector2(1, 0)): # RIGHT direction
             legal_moves = ["up", "down", "right"]
-            
+        
         self.legalActs = legal_moves
 
         for action in legal_moves:
@@ -207,8 +212,25 @@ class ApproxController(Controller):
                 
         return snake_dir
 
-    def calculate_reward(self, snake_body, fruit_pos):
-        if(Vector2.distance_to(snake_body[0], fruit_pos) == 0):
+    def calculate_reward(self, snake_bodyAI, snake_bodyPlayer, fruit_pos):
+        # Player hits snake_AI's body
+        for block in snake_bodyAI[1:]:
+            if block == snake_bodyPlayer[0]:
+                return 100
+
+        # Snake_AI's head hits player's body
+        for block in snake_bodyPlayer:
+            if Vector2.distance_to(snake_bodyAI[0], block) <= 3:
+                return -100
+
+        # Snake_AI's head hits itself
+        for block in snake_bodyAI[1:]:
+            if block == snake_bodyAI[0]:
+                return -100        
+
+        # Snake's head on apple position
+        if(Vector2.distance_to(snake_bodyAI[0], fruit_pos) == 0):
             return 100
+        # Empty square
         else:
             return -10
