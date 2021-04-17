@@ -50,13 +50,13 @@ class Main:
             self.fruit.randomFruit()
             self.snake.addBlock()
             self.snake.score += 1
-            self.snake.playCrunchSound()
+            #self.snake.playCrunchSound()
 
         if self.fruit.pos == self.snakeAI.body[0]:
             self.fruit.randomFruit()
             self.snakeAI.addBlock()
             self.snakeAI.score += 1
-            self.snakeAI.playCrunchSound()
+            #self.snakeAI.playCrunchSound()
         
         for block in self.snake.body[1:]:
             if block == self.fruit.pos:

@@ -15,7 +15,7 @@ class State():
         self.player_score = player_score
         self.player_dir = player_dir
         self.AI_body = AI_body
-        self.AI_score = AI_score # Reward
+        self.AI_score = AI_score
         self.AI_dir = AI_dir
 
 class Controller(object):
@@ -42,11 +42,8 @@ class ApproxController(Controller):
         total = 0
         iteration = 0
         for j in range(0, len(features)):
-            if iteration < 2:
-                total += self.weights[j] * features[j]
-            else:
-                total -= self.weights[j] * features[j]
-            iteration += 1
+            total += self.weights[j] * features[j]
+        #print("Total: ", total)
         return total
 
     def QPrime(self, new_state):
@@ -58,45 +55,6 @@ class ApproxController(Controller):
             if bestValue == None or bestValue < value:
                 bestValue = value
         return bestValue
-
-    #def state_value(self, state, fn = max):
-     #   """Only used for visualisation"""
-     #   best = None
-     #   for action in main.LEGAL_ACTS:
-      #      value = self.Q(state, action)
-      #      if best == None:
-       #         best = value
-      #      else:
-       #         best = fn( value, best )
-      #  return best
-
-    #def state_value_agg(self, fn = max):
-     #   """Only used for visualisation"""
-     #   all_states = self.enumerateStates()
-     #   best_value = None
-     #   for state in all_states:
-      #      state_value = self.state_value( state, fn )
-      #      if best_value == None:
-       #         best_value = state_value
-      #      else:
-       #         best_value = fn(best_value, state_value )
-      #  return best_value
-
-    #def enumerateStates(self):
-     #   """Only used for visualisation"""
-      #  states = []
-      #  for x in range(0, main.GRID_WIDTH):
-       #     for y in range(0, main.GRID_HEIGHT):
-        #        states.append( [x, y] )
-       # return states
-
-    #def max_state_value(self):
-     #   """Only used for visualisation"""
-      #  return self.all_state_values(max)
-
-    #def min_state_value(self):
-     #   """Only used for visualisation"""
-      #  return self.all_state_values(min)
 
     def getFeatures(self, state, action):
         """Convert a state-action pair into features"""
@@ -115,12 +73,18 @@ class ApproxController(Controller):
 
         features = []
 
-        # Manhattan distance between the next space and some waypoints (current apple position, current player's head, current player's tail)
-        waypoints = [ state.apple_pos, state.player_body[0]] #, state.player_body[-1]]
+        # Manhattan distance between the next space and some waypoints 
+        #           (current apple position, current player's head, current player's tail, current AI's tail)
+        score_difference = state.AI_score - state.player_score 
+        waypoints = [state.apple_pos, state.player_body[0], state.player_body[-2], state.AI_body[-2]] #player_body[-2], length_difference
         for (x,y) in waypoints:
             dist_x = abs(next_x - x)
             dist_y = abs(next_y - y)
             features += [ dist_x, dist_y ]
+
+        if len(state.AI_body) < 6:
+            features[-1] = 0
+            features[-2] = 0
 
         #print(features)
 
@@ -146,6 +110,7 @@ class ApproxController(Controller):
         max_successor = self.QPrime(s_prime)
         target = reward + discountFactor * max_successor
         error = target - self.Q( s, action ) 
+        #print("Error: ", error)
 
         # 3. calculate the error for each feature
         errors = []
@@ -191,8 +156,10 @@ class ApproxController(Controller):
 
         for action in legal_moves:
             score = self.Q( state, action )
-            if best[0] is None or score > best[1]:
+            if best[0] is None or score > best[1]: 
                 best = ( action, score )
+
+        print(self.weights)
 
         return best[0]
 
@@ -216,7 +183,7 @@ class ApproxController(Controller):
         # Player hits snake_AI's body
         for block in snake_bodyAI[1:]:
             if block == snake_bodyPlayer[0]:
-                return 100
+                return 20
 
         # Snake_AI's head hits player's body
         for block in snake_bodyPlayer:
@@ -226,11 +193,11 @@ class ApproxController(Controller):
         # Snake_AI's head hits itself
         for block in snake_bodyAI[1:]:
             if block == snake_bodyAI[0]:
-                return -100        
+                return -100
 
         # Snake's head on apple position
         if(Vector2.distance_to(snake_bodyAI[0], fruit_pos) == 0):
-            return 100
+            return 10
         # Empty square
         else:
-            return -10
+            return 1

@@ -73,19 +73,19 @@ while True:
             mainGame.update()
 
         # Player input events
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                if mainGame.snake.direction.y != 1:
-                    mainGame.snake.direction = Vector2(0,-1)
-            if event.key == pygame.K_DOWN:
-                if mainGame.snake.direction.y != -1:
-                    mainGame.snake.direction = Vector2(0,1)
-            if event.key == pygame.K_LEFT:
-                if mainGame.snake.direction.x != 1:
-                    mainGame.snake.direction = Vector2(-1,0)
-            if event.key == pygame.K_RIGHT:
-                if mainGame.snake.direction.x != -1:
-                    mainGame.snake.direction = Vector2(1,0)
+        #if event.type == pygame.KEYDOWN:
+         #   if event.key == pygame.K_UP:
+          #      if mainGame.snake.direction.y != 1:
+           #         mainGame.snake.direction = Vector2(0,-1)
+         #   if event.key == pygame.K_DOWN:
+          #      if mainGame.snake.direction.y != -1:
+           #         mainGame.snake.direction = Vector2(0,1)
+         #   if event.key == pygame.K_LEFT:
+          #      if mainGame.snake.direction.x != 1:
+           #         mainGame.snake.direction = Vector2(-1,0)
+         #   if event.key == pygame.K_RIGHT:
+          #      if mainGame.snake.direction.x != -1:
+           #         mainGame.snake.direction = Vector2(1,0)
 
         # Each X seconds calculate a new movement for the AI
         if time.time_ns() - t0 >= 0.15 * pow(10,9) and mainGame.isGameOver == False:
@@ -96,12 +96,28 @@ while True:
             # Update the weights
             weights = snakeQLearn.weights
 
+            # Player Bot
+            if(mainGame.snake.direction == Vector2(0, -1)): # UP direction
+                mainGame.snake.direction = random.choice([Vector2(0,-1), Vector2(-1,0), Vector2(1,0)])
+            elif(mainGame.snake.direction == Vector2(0, 1)): # DOWN direction
+                mainGame.snake.direction = random.choice([Vector2(0,1), Vector2(-1,0), Vector2(1,0)])
+            elif(mainGame.snake.direction == Vector2(-1, 0)): # LEFT direction
+                mainGame.snake.direction = random.choice([Vector2(0,-1), Vector2(0,1), Vector2(-1,0)])
+            elif(mainGame.snake.direction == Vector2(1, 0)): # RIGHT direction
+                mainGame.snake.direction = random.choice([Vector2(0,-1), Vector2(0,1), Vector2(1,0)])
+
         # Reset game with 'R'
         if event.type == pygame.KEYDOWN:
             if mainGame.isGameOver and event.key == pygame.K_r:
                 mainGame.snake.reset()
                 mainGame.snakeAI.reset()
                 mainGame.isGameOver = False
+
+        # Player Bot
+        if mainGame.isGameOver:
+            mainGame.snake.reset()
+            mainGame.snakeAI.reset()
+            mainGame.isGameOver = False
 
         if event.type == pygame.QUIT:
             pygame.quit()
