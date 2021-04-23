@@ -50,13 +50,13 @@ class Main:
             self.fruit.randomFruit()
             self.snake.addBlock()
             self.snake.score += 1
-            #self.snake.playCrunchSound()
+            self.snake.playCrunchSound()
 
         if self.fruit.pos == self.snakeAI.body[0]:
             self.fruit.randomFruit()
             self.snakeAI.addBlock()
             self.snakeAI.score += 1
-            #self.snakeAI.playCrunchSound()
+            self.snakeAI.playCrunchSound()
         
         for block in self.snake.body[1:]:
             if block == self.fruit.pos:
@@ -109,10 +109,10 @@ class Main:
             self.snakeAI.score /= 2
         elif(case == 3):
             # Player hits AI snake
-            self.snakeAI.score += 5
+            self.snakeAI.score += 3
         elif(case == 4):
             # AI snake hits player
-            self.snake.score += 5
+            self.snake.score += 3
 
         self.isGameOver = True        
         #self.snake.reset()

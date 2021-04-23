@@ -40,7 +40,6 @@ class ApproxController(Controller):
             self.weights = [ 0 ] * len(features)
 
         total = 0
-        iteration = 0
         for j in range(0, len(features)):
             total += self.weights[j] * features[j]
         #print("Total: ", total)
@@ -75,8 +74,7 @@ class ApproxController(Controller):
 
         # Manhattan distance between the next space and some waypoints 
         #           (current apple position, current player's head, current player's tail, current AI's tail)
-        score_difference = state.AI_score - state.player_score 
-        waypoints = [state.apple_pos, state.player_body[0], state.player_body[-2], state.AI_body[-2]] #player_body[-2], length_difference
+        waypoints = [state.apple_pos, state.player_body[0], state.player_body[-2], state.AI_body[-2], state.AI_body[-1]] #player_body[-2], length_difference
         for (x,y) in waypoints:
             dist_x = abs(next_x - x)
             dist_y = abs(next_y - y)
@@ -185,19 +183,22 @@ class ApproxController(Controller):
             if block == snake_bodyPlayer[0]:
                 return 20
 
-        # Snake_AI's head hits player's body
-        for block in snake_bodyPlayer:
-            if Vector2.distance_to(snake_bodyAI[0], block) <= 3:
-                return -100
-
         # Snake_AI's head hits itself
+        if(len(snake_bodyAI) > 6):
+            if Vector2.distance_to(snake_bodyAI[-1], snake_bodyAI[0]) < 3 or Vector2.distance_to(snake_bodyAI[-2], snake_bodyAI[0]) < 3:
+                return -100
         for block in snake_bodyAI[1:]:
             if block == snake_bodyAI[0]:
                 return -100
 
-        # Snake's head on apple position
+        # Snake_AI's head near player's body
+        for block in snake_bodyPlayer:
+            if Vector2.distance_to(snake_bodyAI[0], block) <= 3:
+                return -100
+
+        # Snake_AI's head on apple position
         if(Vector2.distance_to(snake_bodyAI[0], fruit_pos) == 0):
-            return 10
+            return 50
         # Empty square
         else:
-            return 1
+            return -10
